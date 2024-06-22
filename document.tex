@@ -1,0 +1,251 @@
+\documentclass{ltjsarticle}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titling}
+
+\lstdefinestyle{zigstyle}{
+  language=C,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=5pt,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  rulecolor=\color{black!30},
+  captionpos=b,
+  backgroundcolor=\color{black!5},
+}
+
+\title{Zigによるキュー（Queue）の完全実装ガイド}
+\author{作成者名}
+\date{}
+
+\begin{document}
+
+% 表紙
+\begin{titlingpage}
+\maketitle
+\end{titlingpage}
+
+% 目次（新しいページ）
+\newpage
+\tableofcontents
+
+% 本編（新しいページ）
+\newpage
+
+\section{はじめに}
+
+このドキュメントでは、プログラミング言語Zigを使用してキュー（Queue）データ構造を実装する方法を詳細に説明します。C言語の知識がある方を対象としています。
+
+\section{Queueの基本構造}
+
+Zigでは、ジェネリックな型とコンテナを使用してQueueを実装します：
+
+\begin{lstlisting}[style=zigstyle]
+pub fn Queue(comptime T: type, comptime Container: type) type {
+    return struct {
+        const Self = @This();
+        c: Container, // underlying container
+
+        // メソッドがここに続きます...
+    };
+}
+\end{lstlisting}
+
+\texttt{T}は要素の型、\texttt{Container}は内部で使用するコンテナ型（例：ArrayList）を表します。
+
+\section{Queueのメソッド}
+
+\subsection{初期化と解放}
+
+\subsubsection{init}
+\begin{lstlisting}[style=zigstyle]
+pub fn init(allocator: std.mem.Allocator) Self
+\end{lstlisting}
+Queueを初期化します。C言語の\texttt{malloc}に相当しますが、メモリアロケータを引数に取ります。
+
+\subsubsection{deinit}
+\begin{lstlisting}[style=zigstyle]
+pub fn deinit(self: *Self) void
+\end{lstlisting}
+Queueが使用しているメモリを解放します。C言語の\texttt{free}に相当します。
+
+\subsection{要素アクセス}
+
+\subsubsection{front}
+\begin{lstlisting}[style=zigstyle]
+pub fn front(self: *Self) ?*T
+\end{lstlisting}
+先頭要素へのポインタを返します。Queueが空の場合は\texttt{null}を返します。
+
+\subsubsection{frontConst}
+\begin{lstlisting}[style=zigstyle]
+pub fn frontConst(self: *const Self) ?T
+\end{lstlisting}
+先頭要素の値を返します。Queueが空の場合は\texttt{null}を返します。
+
+\subsubsection{back}
+\begin{lstlisting}[style=zigstyle]
+pub fn back(self: *Self) ?*T
+\end{lstlisting}
+末尾要素へのポインタを返します。Queueが空の場合は\texttt{null}を返します。
+
+\subsubsection{backConst}
+\begin{lstlisting}[style=zigstyle]
+pub fn backConst(self: *const Self) ?T
+\end{lstlisting}
+末尾要素の値を返します。Queueが空の場合は\texttt{null}を返します。
+
+\subsection{容量}
+
+\subsubsection{empty}
+\begin{lstlisting}[style=zigstyle]
+pub fn empty(self: *const Self) bool
+\end{lstlisting}
+Queueが空かどうかを返します。
+
+\subsubsection{size}
+\begin{lstlisting}[style=zigstyle]
+pub fn size(self: *const Self) usize
+\end{lstlisting}
+Queueの要素数を返します。
+
+\subsection{要素の追加と削除}
+
+\subsubsection{push}
+\begin{lstlisting}[style=zigstyle]
+pub fn push(self: *Self, value: T) !void
+\end{lstlisting}
+Queueの末尾に要素を追加します。メモリ割り当てに失敗した場合はエラーを返します。
+
+\subsubsection{pop}
+\begin{lstlisting}[style=zigstyle]
+pub fn pop(self: *Self) void
+\end{lstlisting}
+Queueの先頭要素を削除します。Queueが空の場合は何もしません。
+
+\subsection{その他の操作}
+
+\subsubsection{swap}
+\begin{lstlisting}[style=zigstyle]
+pub fn swap(self: *Self, other: *Self) void
+\end{lstlisting}
+二つのQueueの内容を交換します。
+
+\subsubsection{emplace}
+\begin{lstlisting}[style=zigstyle]
+pub fn emplace(self: *Self, args: anytype) !void
+\end{lstlisting}
+新しい要素をQueueに直接構築します。C++の\texttt{emplace}に相当します。
+
+\subsection{比較関数}
+
+\subsubsection{isEqual}
+\begin{lstlisting}[style=zigstyle]
+pub fn isEqual(self: *const Self, other: *const Self) bool
+\end{lstlisting}
+二つのQueueが等しいかどうかを判断します。
+
+\subsubsection{isLessThan}
+\begin{lstlisting}[style=zigstyle]
+pub fn isLessThan(self: *const Self, other: *const Self) bool
+\end{lstlisting}
+一つのQueueが他方より小さいかどうかを判断します。
+
+\subsubsection{isLessThanOrEqual}
+\begin{lstlisting}[style=zigstyle]
+pub fn isLessThanOrEqual(self: *const Self, other: *const Self) bool
+\end{lstlisting}
+一つのQueueが他方以下かどうかを判断します。
+
+\subsubsection{isGreaterThan}
+\begin{lstlisting}[style=zigstyle]
+pub fn isGreaterThan(self: *const Self, other: *const Self) bool
+\end{lstlisting}
+一つのQueueが他方より大きいかどうかを判断します。
+
+\subsubsection{isGreaterThanOrEqual}
+\begin{lstlisting}[style=zigstyle]
+pub fn isGreaterThanOrEqual(self: *const Self, other: *const Self) bool
+\end{lstlisting}
+一つのQueueが他方以上かどうかを判断します。
+
+\subsection{追加機能}
+
+\subsubsection{at}
+\begin{lstlisting}[style=zigstyle]
+pub fn at(self: *const Self, index: usize) ?T
+\end{lstlisting}
+指定したインデックスの要素を返します。インデックスが範囲外の場合は\texttt{null}を返します。
+
+\subsubsection{underlying}
+\begin{lstlisting}[style=zigstyle]
+pub fn underlying(self: *const Self) *const Container
+\end{lstlisting}
+基礎となるコンテナへの直接アクセスを提供します。
+
+\section{グローバル比較関数}
+
+これらの関数は、C++の演算子オーバーロードに相当する機能を提供します。
+
+\begin{lstlisting}[style=zigstyle]
+pub fn eql(comptime T: type, comptime Container: type, 
+           a: *const Queue(T, Container), 
+           b: *const Queue(T, Container)) bool
+
+pub fn lessThan(comptime T: type, comptime Container: type, 
+                a: *const Queue(T, Container), 
+                b: *const Queue(T, Container)) bool
+
+pub fn lessThanOrEqual(comptime T: type, comptime Container: type, 
+                       a: *const Queue(T, Container), 
+                       b: *const Queue(T, Container)) bool
+
+pub fn greaterThan(comptime T: type, comptime Container: type, 
+                   a: *const Queue(T, Container), 
+                   b: *const Queue(T, Container)) bool
+
+pub fn greaterThanOrEqual(comptime T: type, comptime Container: type, 
+                          a: *const Queue(T, Container), 
+                          b: *const Queue(T, Container)) bool
+\end{lstlisting}
+
+これらの関数は、それぞれQueueの等値比較、小なり比較、以下比較、大なり比較、以上比較を行います。
+
+\section{使用例}
+
+以下は、Queueを使用する簡単な例です：
+
+\begin{lstlisting}[style=zigstyle]
+var queue = Queue(i32, std.ArrayList(i32)).init(allocator);
+defer queue.deinit();
+
+try queue.push(1);
+try queue.push(2);
+
+if (queue.front()) |front| {
+    std.debug.print("Front: {}\n", .{front.*});
+}
+
+while (!queue.empty()) {
+    if (queue.frontConst()) |value| {
+        std.debug.print("Popped: {}\n", .{value});
+    }
+    queue.pop();
+}
+\end{lstlisting}
+
+この例では、整数型のQueueを作成し、要素を追加し、すべての要素を取り出しています。
+
+\section{まとめ}
+
+このZigによるQueue実装は、C言語の知識を持つ人々にとって理解しやすいものとなっています。メモリ管理が明示的であり、エラー処理が組み込まれているのが特徴です。また、ジェネリックプログラミングを活用することで、様々な型に対応できる柔軟な実装となっています。
+
+\end{document}
